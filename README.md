@@ -1,7 +1,7 @@
 # Keeal PHP bindings
 
 [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4?logo=php&logoColor=white)](https://www.php.net/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./composer.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 The **Keeal** PHP library provides access to the **Keeal hosted checkout API** from PHP applications: create checkout sessions with your secret key, call **merchant** endpoints (list sessions, retrieve a session), run **public** flows without the secret (retrieve session, pay, PayPal), and verify **webhook** signatures.
 
@@ -204,4 +204,4 @@ Keeal secret keys do **not** use `sk_test_` / `sk_live_` prefixes. Isolate envir
 
 ## License
 
-See [`composer.json`](./composer.json) — **MIT**.
+**MIT** — see [`LICENSE`](./LICENSE).
