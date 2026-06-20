@@ -157,9 +157,23 @@ Signature format: `t=<unix_seconds>,v1=<hex_hmac>` where HMAC-SHA256 is computed
 
 ## Subscription checkout
 
-Pass `mode => 'subscription'` when creating a session:
+Hosted subscription checkout follows the same pattern as Stripe Checkout for subscriptions:
+
+1. Create a **product** and **price** in the Keeal dashboard and copy the price id (`price_…`).
+2. Create a session with `mode => 'subscription'` and the catalog price id.
+3. Redirect to the session `url`.
+4. Handle `checkout.session.completed` and subscription webhooks.
 
 ```php
+// Stripe-style line_items (recommended)
+$checkout->createSession([
+    'mode' => 'subscription',
+    'line_items' => [['price' => 'price_abc123', 'quantity' => 1]],
+    'success_url' => 'https://yoursite.com/welcome',
+    'cancel_url' => 'https://yoursite.com/pricing',
+]);
+
+// Or subscription_data (line_items expanded server-side)
 $checkout->createSession([
     'mode' => 'subscription',
     'subscription_data' => ['price_id' => 'price_abc123'],
