@@ -10,14 +10,23 @@ namespace Keeal\Checkout;
  */
 final class WebhookVerifier
 {
+    public const SIGNATURE_HEADER = 'X-Keeal-Signature';
+
+    public const EVENT_HEADER = 'X-Keeal-Event';
+
     /**
      * @param  string  $rawBody  Exact bytes received (do not re-encode JSON).
      * @param  string  $signatureHeader  Value of X-Keeal-Signature.
      * @param  string  $whsecSigningSecret  Webhook signing secret (whsec_…).
+     * @param  int  $toleranceSeconds  Reject stale signatures (default 300). Set 0 to skip.
      */
-    public static function verify(string $rawBody, string $signatureHeader, string $whsecSigningSecret): bool
-    {
-        if ($rawBody === '' || $signatureHeader === '' || $whsecSigningSecret === '') {
+    public static function verify(
+        string $rawBody,
+        string $signatureHeader,
+        string $whsecSigningSecret,
+        int $toleranceSeconds = 300,
+    ): bool {
+        if ($signatureHeader === '' || $whsecSigningSecret === '') {
             return false;
         }
 
@@ -39,6 +48,16 @@ final class WebhookVerifier
             return false;
         }
 
+        if ($toleranceSeconds > 0) {
+            $ts = (int) $t;
+            if ($ts <= 0) {
+                return false;
+            }
+            if (abs(time() - $ts) > $toleranceSeconds) {
+                return false;
+            }
+        }
+
         $signed = $t . '.' . $rawBody;
         $expected = hash_hmac('sha256', $signed, $whsecSigningSecret, false);
         if (strlen($expected) !== strlen($v1)) {
@@ -46,5 +65,35 @@ final class WebhookVerifier
         }
 
         return hash_equals($expected, $v1);
+    }
+
+    /**
+     * Verify signature and decode the webhook JSON envelope.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws KeealCheckoutException when signature is invalid or JSON cannot be parsed.
+     */
+    public static function constructEvent(
+        string $rawBody,
+        string $signatureHeader,
+        string $whsecSigningSecret,
+        int $toleranceSeconds = 300,
+    ): array {
+        if (! self::verify($rawBody, $signatureHeader, $whsecSigningSecret, $toleranceSeconds)) {
+            throw new KeealCheckoutException('Invalid Keeal webhook signature', 400);
+        }
+
+        try {
+            $event = json_decode($rawBody, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            throw new KeealCheckoutException('Invalid webhook JSON body', 400);
+        }
+
+        if (! is_array($event)) {
+            throw new KeealCheckoutException('Invalid webhook JSON body', 400);
+        }
+
+        return $event;
     }
 }

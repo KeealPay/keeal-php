@@ -6,6 +6,8 @@ namespace Keeal\Checkout;
 
 /**
  * Server-side client: secret API key (keeal_sk_…). Never expose in browsers.
+ *
+ * Recommended: createSession() → redirect customer to url → handle webhooks.
  */
 final class KeealCheckout
 {
@@ -102,6 +104,8 @@ final class KeealCheckout
     }
 
     /**
+     * @deprecated Use hosted checkout — redirect to session url instead of POST /pay.
+     *
      * @param array<string, mixed> $params amountCents, clientEmail, …
      * @param array{idempotencyKey?: string|null} $options
      * @return array{paymentId: string, clientSecret: string|null}
@@ -121,12 +125,14 @@ final class KeealCheckout
         );
     }
 
+    /** @deprecated Legacy custom checkout — hosted checkout handles cancellation on Keeal's pay page. */
     public function cancelSession(string $sessionId): void
     {
         $enc = rawurlencode($sessionId);
         $this->requestEmpty('POST', "/checkout/sessions/{$enc}/cancel", null, true);
     }
 
+    /** @deprecated Legacy custom checkout — hosted checkout tracks abandonment automatically. */
     public function abandonSession(string $sessionId): void
     {
         $enc = rawurlencode($sessionId);
@@ -134,6 +140,8 @@ final class KeealCheckout
     }
 
     /**
+     * @deprecated PayPal is handled on Keeal's hosted checkout page for new integrations.
+     *
      * @param array{amountCents: int, clientEmail?: string, clientName?: string} $params
      * @return array{orderId: string, paymentId: string}
      */
@@ -149,6 +157,8 @@ final class KeealCheckout
     }
 
     /**
+     * @deprecated PayPal is handled on Keeal's hosted checkout page for new integrations.
+     *
      * @param array{orderId: string} $params
      * @return array<string, mixed>
      */

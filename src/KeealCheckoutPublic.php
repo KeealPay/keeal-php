@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Keeal\Checkout;
 
 /**
- * Unauthenticated client: retrieve session + pay (+ cancel/abandon + PayPal) only.
+ * Unauthenticated client for legacy custom checkout UIs.
+ *
+ * @deprecated Use hosted checkout ({@see KeealCheckout::createSession} + redirect to url).
+ * Keeal does not offer custom /pay integrations to new merchants; this class remains for backward compatibility.
  */
 final class KeealCheckoutPublic
 {
@@ -44,6 +47,8 @@ final class KeealCheckoutPublic
     }
 
     /**
+     * @deprecated Use hosted checkout instead of calling /pay from your front-end.
+     *
      * @param array<string, mixed> $params
      * @param array{idempotencyKey?: string|null} $options
      * @return array{paymentId: string, clientSecret: string|null}
